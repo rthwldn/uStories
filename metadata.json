@@ -1,0 +1,6 @@
+{
+  "name": "uStories",
+  "description": "Tvorba 9:16 Instagram Stories z YouTube videí s výběrem šablon a exportem do PNG/JPG",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
