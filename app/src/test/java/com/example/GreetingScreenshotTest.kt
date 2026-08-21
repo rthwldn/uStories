@@ -21,8 +21,8 @@ class GreetingScreenshotTest {
 
   @Test
   fun greeting_screenshot() {
-    composeTestRule.setContent { MyApplicationTheme { StoryTubeApp() } }
-
+    composeTestRule.setContent { MyApplicationTheme { UStoriesApp() } }
+    composeTestRule.waitForIdle()
     composeTestRule.onRoot().captureRoboImage(filePath = "src/test/screenshots/greeting.png")
   }
 }
