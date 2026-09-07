@@ -14,22 +14,71 @@ enum class StoryTemplate(
     val cardBorderColor: Color,
     val cardBorderColorInt: Int,
     val textColor: Color,
-    val metaColor: Color
+    val metaColor: Color,
+    val isBlurredThumbnailBg: Boolean = false
 ) {
+    CHARCOAL_SLATE(
+        id = "charcoal_slate",
+        title = "Minimal",
+        emoji = "🖤",
+        gradientColors = listOf(Color(0xFF222226), Color(0xFF0A0A0C)),
+        gradientIntColors = intArrayOf(
+            AndroidColor.parseColor("#222226"),
+            AndroidColor.parseColor("#0A0A0C")
+        ),
+        cardBackground = Color(0xFF161618),
+        cardBackgroundInt = AndroidColor.parseColor("#161618"),
+        cardBorderColor = Color.Transparent,
+        cardBorderColorInt = AndroidColor.TRANSPARENT,
+        textColor = Color(0xFFFFFFFF),
+        metaColor = Color(0xFFA1A1AA)
+    ),
+    LIGHT_MINIMAL(
+        id = "light_minimal",
+        title = "Světlý minimal",
+        emoji = "🤍",
+        gradientColors = listOf(Color(0xFFF8F9FA), Color(0xFFE9ECEF)),
+        gradientIntColors = intArrayOf(
+            AndroidColor.parseColor("#F8F9FA"),
+            AndroidColor.parseColor("#E9ECEF")
+        ),
+        cardBackground = Color(0xFFFFFFFF),
+        cardBackgroundInt = AndroidColor.parseColor("#FFFFFF"),
+        cardBorderColor = Color.Transparent,
+        cardBorderColorInt = AndroidColor.TRANSPARENT,
+        textColor = Color(0xFF111827),
+        metaColor = Color(0xFF6B7280)
+    ),
+    BLURRED_THUMBNAIL(
+        id = "blurred_thumbnail",
+        title = "Rozmazané video",
+        emoji = "✨",
+        gradientColors = listOf(Color(0xFF1C1A24), Color(0xFF0B0A0F)),
+        gradientIntColors = intArrayOf(
+            AndroidColor.parseColor("#1C1A24"),
+            AndroidColor.parseColor("#0B0A0F")
+        ),
+        cardBackground = Color(0xE616141D),
+        cardBackgroundInt = AndroidColor.parseColor("#E616141D"),
+        cardBorderColor = Color.Transparent,
+        cardBorderColorInt = AndroidColor.TRANSPARENT,
+        textColor = Color(0xFFFFFFFF),
+        metaColor = Color(0xFFD1D5DB),
+        isBlurredThumbnailBg = true
+    ),
     DARK_MINIMAL(
         id = "dark_minimal",
         title = "Tmavý gradient",
         emoji = "🌑",
-        gradientColors = listOf(Color(0xFF0D0B14), Color(0xFF1B1626), Color(0xFF0F0D18)),
+        gradientColors = listOf(Color(0xFF1A1628), Color(0xFF090810)),
         gradientIntColors = intArrayOf(
-            AndroidColor.parseColor("#0D0B14"),
-            AndroidColor.parseColor("#1B1626"),
-            AndroidColor.parseColor("#0F0D18")
+            AndroidColor.parseColor("#1A1628"),
+            AndroidColor.parseColor("#090810")
         ),
         cardBackground = Color(0xFF1E1A2B),
         cardBackgroundInt = AndroidColor.parseColor("#1E1A2B"),
-        cardBorderColor = Color(0x33FFFFFF),
-        cardBorderColorInt = AndroidColor.parseColor("#33FFFFFF"),
+        cardBorderColor = Color.Transparent,
+        cardBorderColorInt = AndroidColor.TRANSPARENT,
         textColor = Color(0xFFFFFFFF),
         metaColor = Color(0xFFB3B0C2)
     ),
@@ -37,16 +86,15 @@ enum class StoryTemplate(
         id = "midnight_blue",
         title = "Půlnoční modrá",
         emoji = "🌌",
-        gradientColors = listOf(Color(0xFF0A1128), Color(0xFF1C2541), Color(0xFF0B132B)),
+        gradientColors = listOf(Color(0xFF1C2847), Color(0xFF080D1A)),
         gradientIntColors = intArrayOf(
-            AndroidColor.parseColor("#0A1128"),
-            AndroidColor.parseColor("#1C2541"),
-            AndroidColor.parseColor("#0B132B")
+            AndroidColor.parseColor("#1C2847"),
+            AndroidColor.parseColor("#080D1A")
         ),
-        cardBackground = Color(0xFF14213D),
-        cardBackgroundInt = AndroidColor.parseColor("#14213D"),
-        cardBorderColor = Color(0x3364DFDF),
-        cardBorderColorInt = AndroidColor.parseColor("#3364DFDF"),
+        cardBackground = Color(0xFF142038),
+        cardBackgroundInt = AndroidColor.parseColor("#142038"),
+        cardBorderColor = Color.Transparent,
+        cardBorderColorInt = AndroidColor.TRANSPARENT,
         textColor = Color(0xFFFFFFFF),
         metaColor = Color(0xFF90E0EF)
     ),
@@ -54,50 +102,31 @@ enum class StoryTemplate(
         id = "instagram_sunset",
         title = "Instagram Sunset",
         emoji = "🌅",
-        gradientColors = listOf(Color(0xFF4C1D95), Color(0xFF831843), Color(0xFF7C2D12)),
+        gradientColors = listOf(Color(0xFF831843), Color(0xFF310E54)),
         gradientIntColors = intArrayOf(
-            AndroidColor.parseColor("#4C1D95"),
             AndroidColor.parseColor("#831843"),
-            AndroidColor.parseColor("#7C2D12")
+            AndroidColor.parseColor("#310E54")
         ),
-        cardBackground = Color(0xFF2E1065).copy(alpha = 0.95f),
-        cardBackgroundInt = AndroidColor.parseColor("#2E1065"),
-        cardBorderColor = Color(0x44F43F5E),
-        cardBorderColorInt = AndroidColor.parseColor("#44F43F5E"),
+        cardBackground = Color(0xFF260D40),
+        cardBackgroundInt = AndroidColor.parseColor("#260D40"),
+        cardBorderColor = Color.Transparent,
+        cardBorderColorInt = AndroidColor.TRANSPARENT,
         textColor = Color(0xFFFFFFFF),
         metaColor = Color(0xFFFDE047)
-    ),
-    DEEP_PURPLE(
-        id = "deep_purple",
-        title = "Temně fialová",
-        emoji = "🔮",
-        gradientColors = listOf(Color(0xFF1E1035), Color(0xFF381E72), Color(0xFF190C2F)),
-        gradientIntColors = intArrayOf(
-            AndroidColor.parseColor("#1E1035"),
-            AndroidColor.parseColor("#381E72"),
-            AndroidColor.parseColor("#190C2F")
-        ),
-        cardBackground = Color(0xFF261546),
-        cardBackgroundInt = AndroidColor.parseColor("#261546"),
-        cardBorderColor = Color(0x44D0BCFF),
-        cardBorderColorInt = AndroidColor.parseColor("#44D0BCFF"),
-        textColor = Color(0xFFFFFFFF),
-        metaColor = Color(0xFFEADDFF)
     ),
     EMERALD_NIGHT(
         id = "emerald_night",
         title = "Smaragdová",
         emoji = "🌲",
-        gradientColors = listOf(Color(0xFF042F2E), Color(0xFF0D4A46), Color(0xFF032221)),
+        gradientColors = listOf(Color(0xFF0D403B), Color(0xFF021716)),
         gradientIntColors = intArrayOf(
-            AndroidColor.parseColor("#042F2E"),
-            AndroidColor.parseColor("#0D4A46"),
-            AndroidColor.parseColor("#032221")
+            AndroidColor.parseColor("#0D403B"),
+            AndroidColor.parseColor("#021716")
         ),
-        cardBackground = Color(0xFF0A3633),
-        cardBackgroundInt = AndroidColor.parseColor("#0A3633"),
-        cardBorderColor = Color(0x332DD4BF),
-        cardBorderColorInt = AndroidColor.parseColor("#332DD4BF"),
+        cardBackground = Color(0xFF0A2E2A),
+        cardBackgroundInt = AndroidColor.parseColor("#0A2E2A"),
+        cardBorderColor = Color.Transparent,
+        cardBorderColorInt = AndroidColor.TRANSPARENT,
         textColor = Color(0xFFFFFFFF),
         metaColor = Color(0xFF99F6E4)
     ),
@@ -105,57 +134,22 @@ enum class StoryTemplate(
         id = "crimson_dark",
         title = "Karmínová",
         emoji = "🔥",
-        gradientColors = listOf(Color(0xFF28090C), Color(0xFF4A1016), Color(0xFF1C0507)),
+        gradientColors = listOf(Color(0xFF4A1218), Color(0xFF150406)),
         gradientIntColors = intArrayOf(
-            AndroidColor.parseColor("#28090C"),
-            AndroidColor.parseColor("#4A1016"),
-            AndroidColor.parseColor("#1C0507")
+            AndroidColor.parseColor("#4A1218"),
+            AndroidColor.parseColor("#150406")
         ),
-        cardBackground = Color(0xFF380C11),
-        cardBackgroundInt = AndroidColor.parseColor("#380C11"),
-        cardBorderColor = Color(0x33F87171),
-        cardBorderColorInt = AndroidColor.parseColor("#33F87171"),
+        cardBackground = Color(0xFF330C11),
+        cardBackgroundInt = AndroidColor.parseColor("#330C11"),
+        cardBorderColor = Color.Transparent,
+        cardBorderColorInt = AndroidColor.TRANSPARENT,
         textColor = Color(0xFFFFFFFF),
         metaColor = Color(0xFFFECACA)
-    ),
-    CHARCOAL_SLATE(
-        id = "charcoal_slate",
-        title = "Uhlíkový minimal",
-        emoji = "🖤",
-        gradientColors = listOf(Color(0xFF000000), Color(0xFF18181B), Color(0xFF09090B)),
-        gradientIntColors = intArrayOf(
-            AndroidColor.parseColor("#000000"),
-            AndroidColor.parseColor("#18181B"),
-            AndroidColor.parseColor("#09090B")
-        ),
-        cardBackground = Color(0xFF18181B),
-        cardBackgroundInt = AndroidColor.parseColor("#18181B"),
-        cardBorderColor = Color(0x2EFFFFFF),
-        cardBorderColorInt = AndroidColor.parseColor("#2EFFFFFF"),
-        textColor = Color(0xFFFFFFFF),
-        metaColor = Color(0xFFA1A1AA)
-    ),
-    OCEAN_CYAN(
-        id = "ocean_cyan",
-        title = "Oceánská",
-        emoji = "🌊",
-        gradientColors = listOf(Color(0xFF081C2C), Color(0xFF0F3A5A), Color(0xFF05131E)),
-        gradientIntColors = intArrayOf(
-            AndroidColor.parseColor("#081C2C"),
-            AndroidColor.parseColor("#0F3A5A"),
-            AndroidColor.parseColor("#05131E")
-        ),
-        cardBackground = Color(0xFF0C2B44),
-        cardBackgroundInt = AndroidColor.parseColor("#0C2B44"),
-        cardBorderColor = Color(0x3338BDF8),
-        cardBorderColorInt = AndroidColor.parseColor("#3338BDF8"),
-        textColor = Color(0xFFFFFFFF),
-        metaColor = Color(0xFFBAE6FD)
     );
 
     companion object {
         fun fromId(id: String): StoryTemplate {
-            return entries.find { it.id == id } ?: DARK_MINIMAL
+            return entries.find { it.id == id } ?: CHARCOAL_SLATE
         }
     }
 }

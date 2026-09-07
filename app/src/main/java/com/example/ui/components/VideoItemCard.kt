@@ -142,22 +142,9 @@ fun VideoItemCard(
 
                 Spacer(modifier = Modifier.height(2.dp))
 
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
+                if (video.viewCount.isNotBlank()) {
                     Text(
                         text = video.viewCount,
-                        color = colorScheme.onSurfaceVariant,
-                        fontSize = 10.sp
-                    )
-                    Text(
-                        text = "•",
-                        color = colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-                        fontSize = 10.sp
-                    )
-                    Text(
-                        text = video.publishedDate,
                         color = colorScheme.onSurfaceVariant,
                         fontSize = 10.sp
                     )

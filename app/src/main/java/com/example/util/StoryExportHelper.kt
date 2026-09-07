@@ -104,21 +104,26 @@ object StoryExportHelper {
 
         val template = custom.template
 
-        // 1. Draw Full Background Gradient
-        val bgGradient = LinearGradient(
-            0f, 0f, 0f, height.toFloat(),
-            template.gradientIntColors,
-            null,
-            Shader.TileMode.CLAMP
-        )
-        val bgPaint = Paint().apply {
-            isAntiAlias = true
-            shader = bgGradient
-        }
-        canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), bgPaint)
-
-        // 2. Fetch real Video Thumbnail Bitmap
+        // 1. Fetch real Video Thumbnail Bitmap early (needed for both background and card)
         val thumbBitmap = fetchThumbnailBitmap(context, video.thumbnailUrl)
+
+        // 2. Draw Full Background (Blurred thumbnail or smooth vertical gradient)
+        if (template.isBlurredThumbnailBg && thumbBitmap != null) {
+            drawBlurredBackground(canvas, thumbBitmap, width, height)
+        } else {
+            val bgGradient = LinearGradient(
+                0f, 0f, 0f, height.toFloat(),
+                template.gradientIntColors,
+                null,
+                Shader.TileMode.CLAMP
+            )
+            val bgPaint = Paint().apply {
+                isAntiAlias = true
+                isDither = true
+                shader = bgGradient
+            }
+            canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), bgPaint)
+        }
 
         // 3. Draw Centered Video Card
         val cardWidth = 940f
@@ -137,6 +142,15 @@ object StoryExportHelper {
         val cardBottom = cardTop + cardContentHeight
         val cardRect = RectF(cardLeft, cardTop, cardRight, cardBottom)
 
+        // Draw Soft Drop Shadow for floating card
+        val shadowPaint = Paint().apply {
+            isAntiAlias = true
+            color = AndroidColor.parseColor("#40000000")
+            maskFilter = android.graphics.BlurMaskFilter(32f, android.graphics.BlurMaskFilter.Blur.NORMAL)
+        }
+        val shadowRect = RectF(cardLeft + 6f, cardTop + 16f, cardRight - 6f, cardBottom + 20f)
+        canvas.drawRoundRect(shadowRect, 44f, 44f, shadowPaint)
+
         // Draw Card Background
         val cardBgPaint = Paint().apply {
             isAntiAlias = true
@@ -144,15 +158,6 @@ object StoryExportHelper {
             style = Paint.Style.FILL
         }
         canvas.drawRoundRect(cardRect, 44f, 44f, cardBgPaint)
-
-        // Draw Card Border
-        val cardBorderPaint = Paint().apply {
-            isAntiAlias = true
-            color = template.cardBorderColorInt
-            style = Paint.Style.STROKE
-            strokeWidth = 3f
-        }
-        canvas.drawRoundRect(cardRect, 44f, 44f, cardBorderPaint)
 
         // 4. Draw Video Thumbnail inside Card (Rounded Corners) - Clean without red play button
         val thumbTop = cardTop + thumbPadding
@@ -172,8 +177,8 @@ object StoryExportHelper {
             canvas.drawRoundRect(thumbRect, 28f, 28f, fallbackPaint)
         }
 
-        // Draw Duration Badge in bottom-right of thumbnail if available
-        if (video.formattedDuration.isNotEmpty() && video.durationSeconds > 0) {
+        // Draw Duration Badge in bottom-left of thumbnail if available (like YouTube)
+        if (video.formattedDuration.isNotEmpty()) {
             val durPaint = Paint().apply {
                 isAntiAlias = true
                 textSize = 28f
@@ -182,18 +187,20 @@ object StoryExportHelper {
             }
             val durText = video.formattedDuration
             val durTextWidth = durPaint.measureText(durText)
+            val badgePaddingH = 14f
+            val badgeHeight = 44f
             val durRect = RectF(
-                thumbRight - durTextWidth - 36f,
-                thumbBottom - 48f - 16f,
-                thumbRight - 16f,
+                thumbLeft + 16f,
+                thumbBottom - badgeHeight - 16f,
+                thumbLeft + 16f + durTextWidth + (badgePaddingH * 2f),
                 thumbBottom - 16f
             )
             val durBgPaint = Paint().apply {
                 isAntiAlias = true
-                color = AndroidColor.parseColor("#CC000000")
+                color = AndroidColor.parseColor("#D9000000")
             }
             canvas.drawRoundRect(durRect, 10f, 10f, durBgPaint)
-            canvas.drawText(durText, durRect.left + 18f, durRect.bottom - 16f, durPaint)
+            canvas.drawText(durText, durRect.left + badgePaddingH, durRect.bottom - 13f, durPaint)
         }
 
         // 5. Draw Video Title Below Thumbnail
@@ -239,7 +246,7 @@ object StoryExportHelper {
             canvas.drawText(line2, textLeft, textY, titlePaint)
         }
 
-        // 6. Draw Views, Upload Date & Channel (Only include non-empty metadata)
+        // 6. Draw Channel name, Views & Upload Date (channel name + views together separated by •)
         textY += 56f
         val metaPaint = Paint().apply {
             isAntiAlias = true
@@ -249,14 +256,25 @@ object StoryExportHelper {
         }
 
         val metaParts = mutableListOf<String>()
-        if (video.viewCount.isNotBlank()) metaParts.add(video.viewCount)
-        val formattedDate = video.cleanPublishedDate
-        if (formattedDate.isNotBlank()) metaParts.add(formattedDate)
         if (video.channelTitle.isNotBlank()) metaParts.add(video.channelTitle)
+        if (video.viewCount.isNotBlank()) metaParts.add(video.viewCount)
 
         if (metaParts.isNotEmpty()) {
             val metaString = metaParts.joinToString(" • ")
-            canvas.drawText(metaString, textLeft, textY, metaPaint)
+            val clippedMeta = if (metaPaint.measureText(metaString) > maxTextWidth) {
+                val shortParts = mutableListOf<String>()
+                if (video.channelTitle.isNotBlank()) shortParts.add(video.channelTitle)
+                if (video.viewCount.isNotBlank()) shortParts.add(video.viewCount)
+                val shortString = shortParts.joinToString(" • ")
+                if (metaPaint.measureText(shortString) > maxTextWidth) {
+                    "${video.channelTitle} • ${video.viewCount}".take(42) + "..."
+                } else {
+                    shortString
+                }
+            } else {
+                metaString
+            }
+            canvas.drawText(clippedMeta, textLeft, textY, metaPaint)
         }
 
         bitmap
@@ -303,6 +321,261 @@ object StoryExportHelper {
             val top = (srcH - cropH) / 2
             Rect(0, top, srcW, top + cropH)
         }
+    }
+
+    private fun drawBlurredBackground(canvas: Canvas, source: Bitmap, width: Int, height: Int) {
+        try {
+            // Downsample aggressively (e.g. 18x32 or 27x48) for smooth box-blur / pixel diffusion
+            val smallW = 36
+            val smallH = 64
+            val scaledDown = Bitmap.createScaledBitmap(source, smallW, smallH, true)
+            val fastBlurred = fastBlur(scaledDown, 12)
+
+            // Draw scaled back up to full 1080x1920 with bilinear interpolation (FILTER_BITMAP_FLAG)
+            val bgPaint = Paint(Paint.FILTER_BITMAP_FLAG or Paint.ANTI_ALIAS_FLAG).apply {
+                isDither = true
+            }
+            val dstRect = Rect(0, 0, width, height)
+            val srcCrop = calculateCenterCropRect(fastBlurred.width, fastBlurred.height, width, height)
+            canvas.drawBitmap(fastBlurred, srcCrop, dstRect, bgPaint)
+
+            // Draw dark vignette overlay for legibility
+            val overlayPaint = Paint().apply {
+                color = AndroidColor.parseColor("#99050508") // ~60% dark overlay
+            }
+            canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), overlayPaint)
+
+            if (fastBlurred != scaledDown) {
+                scaledDown.recycle()
+            }
+            fastBlurred.recycle()
+        } catch (_: Exception) {
+            // Fallback gradient if blur fails
+            val fallbackPaint = Paint().apply {
+                color = AndroidColor.parseColor("#15131C")
+            }
+            canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), fallbackPaint)
+        }
+    }
+
+    // StackBlur / BoxBlur implementation for Android Bitmaps without RenderScript dependencies
+    private fun fastBlur(sentBitmap: Bitmap, radius: Int): Bitmap {
+        val bitmap = sentBitmap.copy(sentBitmap.config ?: Bitmap.Config.ARGB_8888, true)
+        if (radius < 1) return bitmap
+
+        val w = bitmap.width
+        val h = bitmap.height
+        val pix = IntArray(w * h)
+        bitmap.getPixels(pix, 0, w, 0, 0, w, h)
+
+        val wm = w - 1
+        val hm = h - 1
+        val wh = w * h
+        val div = radius + radius + 1
+
+        val r = IntArray(wh)
+        val g = IntArray(wh)
+        val b = IntArray(wh)
+        var rsum: Int
+        var gsum: Int
+        var bsum: Int
+        var x: Int
+        var y: Int
+        var i: Int
+        var p: Int
+        var yp: Int
+        var yi: Int
+        var yw: Int
+        val vmin = IntArray(maxOf(w, h))
+
+        var divsum = (div + 1) shr 1
+        divsum *= divsum
+        val dv = IntArray(256 * divsum)
+        for (idx in 0 until 256 * divsum) {
+            dv[idx] = idx / divsum
+        }
+
+        yw = 0
+        yi = 0
+
+        val stack = Array(div) { IntArray(3) }
+        var stackpointer: Int
+        var stackstart: Int
+        var sir: IntArray
+        var rbs: Int
+        val r1 = radius + 1
+        var routsum: Int
+        var goutsum: Int
+        var boutsum: Int
+        var rinsum: Int
+        var ginsum: Int
+        var binsum: Int
+
+        for (curY in 0 until h) {
+            rinsum = 0
+            ginsum = 0
+            binsum = 0
+            routsum = 0
+            goutsum = 0
+            boutsum = 0
+            rsum = 0
+            gsum = 0
+            bsum = 0
+            for (curI in -radius..radius) {
+                p = pix[yi + minOf(wm, maxOf(curI, 0))]
+                sir = stack[curI + radius]
+                sir[0] = (p and 0xff0000) shr 16
+                sir[1] = (p and 0x00ff00) shr 8
+                sir[2] = p and 0x0000ff
+                rbs = r1 - kotlin.math.abs(curI)
+                rsum += sir[0] * rbs
+                gsum += sir[1] * rbs
+                bsum += sir[2] * rbs
+                if (curI > 0) {
+                    rinsum += sir[0]
+                    ginsum += sir[1]
+                    binsum += sir[2]
+                } else {
+                    routsum += sir[0]
+                    goutsum += sir[1]
+                    boutsum += sir[2]
+                }
+            }
+            stackpointer = radius
+
+            for (curX in 0 until w) {
+                r[yi] = dv[rsum]
+                g[yi] = dv[gsum]
+                b[yi] = dv[bsum]
+
+                rsum -= routsum
+                gsum -= goutsum
+                bsum -= boutsum
+
+                stackstart = stackpointer - radius + div
+                sir = stack[stackstart % div]
+
+                routsum -= sir[0]
+                goutsum -= sir[1]
+                boutsum -= sir[2]
+
+                if (curY == 0) {
+                    vmin[curX] = minOf(curX + radius + 1, wm)
+                }
+                p = pix[yw + vmin[curX]]
+
+                sir[0] = (p and 0xff0000) shr 16
+                sir[1] = (p and 0x00ff00) shr 8
+                sir[2] = p and 0x0000ff
+
+                rinsum += sir[0]
+                ginsum += sir[1]
+                binsum += sir[2]
+
+                rsum += rinsum
+                gsum += ginsum
+                bsum += binsum
+
+                stackpointer = (stackpointer + 1) % div
+                sir = stack[stackpointer % div]
+
+                routsum += sir[0]
+                goutsum += sir[1]
+                boutsum += sir[2]
+
+                rinsum -= sir[0]
+                ginsum -= sir[1]
+                binsum -= sir[2]
+
+                yi++
+            }
+            yw += w
+        }
+
+        for (curX in 0 until w) {
+            rinsum = 0
+            ginsum = 0
+            binsum = 0
+            routsum = 0
+            goutsum = 0
+            boutsum = 0
+            rsum = 0
+            gsum = 0
+            bsum = 0
+            yp = -radius * w
+            for (curI in -radius..radius) {
+                yi = maxOf(0, yp) + curX
+                sir = stack[curI + radius]
+                sir[0] = r[yi]
+                sir[1] = g[yi]
+                sir[2] = b[yi]
+                rbs = r1 - kotlin.math.abs(curI)
+                rsum += r[yi] * rbs
+                gsum += g[yi] * rbs
+                bsum += b[yi] * rbs
+                if (curI > 0) {
+                    rinsum += sir[0]
+                    ginsum += sir[1]
+                    binsum += sir[2]
+                } else {
+                    routsum += sir[0]
+                    goutsum += sir[1]
+                    boutsum += sir[2]
+                }
+                if (curI < hm) {
+                    yp += w
+                }
+            }
+            yi = curX
+            stackpointer = radius
+            for (curY in 0 until h) {
+                pix[yi] = (-0x1000000 and pix[yi]) or (dv[rsum] shl 16) or (dv[gsum] shl 8) or dv[bsum]
+
+                rsum -= routsum
+                gsum -= goutsum
+                bsum -= boutsum
+
+                stackstart = stackpointer - radius + div
+                sir = stack[stackstart % div]
+
+                routsum -= sir[0]
+                goutsum -= sir[1]
+                boutsum -= sir[2]
+
+                if (curX == 0) {
+                    vmin[curY] = minOf(curY + r1, hm) * w
+                }
+                p = curX + vmin[curY]
+
+                sir[0] = r[p]
+                sir[1] = g[p]
+                sir[2] = b[p]
+
+                rinsum += sir[0]
+                ginsum += sir[1]
+                binsum += sir[2]
+
+                rsum += rinsum
+                gsum += ginsum
+                bsum += binsum
+
+                stackpointer = (stackpointer + 1) % div
+                sir = stack[stackpointer]
+
+                routsum += sir[0]
+                goutsum += sir[1]
+                boutsum += sir[2]
+
+                rinsum -= sir[0]
+                ginsum -= sir[1]
+                binsum -= sir[2]
+
+                yi += w
+            }
+        }
+
+        bitmap.setPixels(pix, 0, w, 0, 0, w, h)
+        return bitmap
     }
 
     suspend fun saveStoryToGallery(

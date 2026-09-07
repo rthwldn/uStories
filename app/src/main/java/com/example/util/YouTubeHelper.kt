@@ -60,6 +60,7 @@ object YouTubeHelper {
         var thumbUrl = getThumbnailUrl(videoId, "hq")
         var realViewCount = ""
         var publishedDate = ""
+        var parsedDurationSeconds = 0
 
         // 1. Fetch metadata via YouTube oEmbed API
         try {
@@ -82,7 +83,7 @@ object YouTubeHelper {
             // Continue to HTML scraping fallback
         }
 
-        // 2. Fetch real viewCount and upload date from YouTube watch page HTML
+        // 2. Fetch real viewCount, upload date, and duration from YouTube watch page HTML
         try {
             val watchUrl = "https://www.youtube.com/watch?v=$videoId"
             val pageRequest = Request.Builder()
@@ -123,9 +124,36 @@ object YouTubeHelper {
                     val rawDate = dateMatcher.group(1).orEmpty()
                     publishedDate = formatCzechDate(rawDate)
                 }
+
+                // Check duration in JSON: "lengthSeconds":"213"
+                val lengthPattern = Pattern.compile("\"lengthSeconds\"\\s*:\\s*\"(\\d+)\"")
+                val lengthMatcher = lengthPattern.matcher(html)
+                if (lengthMatcher.find()) {
+                    parsedDurationSeconds = lengthMatcher.group(1)?.toIntOrNull() ?: 0
+                }
+
+                // Fallback check ISO duration: itemprop="duration" content="PT3M33S"
+                if (parsedDurationSeconds <= 0) {
+                    val isoPattern = Pattern.compile("itemprop=\"duration\"\\s+content=\"(PT[^\"]+)\"")
+                    val isoMatcher = isoPattern.matcher(html)
+                    if (isoMatcher.find()) {
+                        val isoStr = isoMatcher.group(1).orEmpty()
+                        parsedDurationSeconds = parseIsoDuration(isoStr)
+                    }
+                }
+
+                // Fallback check approxDurationMs in streamingData
+                if (parsedDurationSeconds <= 0) {
+                    val approxPattern = Pattern.compile("\"approxDurationMs\"\\s*:\\s*\"(\\d+)\"")
+                    val approxMatcher = approxPattern.matcher(html)
+                    if (approxMatcher.find()) {
+                        val ms = approxMatcher.group(1)?.toLongOrNull() ?: 0L
+                        parsedDurationSeconds = (ms / 1000L).toInt()
+                    }
+                }
             }
         } catch (_: Exception) {
-            // If fetching failed, realViewCount remains empty as requested
+            // If fetching failed, values remain default
         }
 
         YouTubeVideo(
@@ -133,12 +161,26 @@ object YouTubeHelper {
             title = videoTitle,
             channelTitle = authorName,
             thumbnailUrl = thumbUrl,
-            durationSeconds = 0,
+            durationSeconds = parsedDurationSeconds,
             viewCount = realViewCount,
             publishedDate = publishedDate,
             category = "Importováno",
             description = "YouTube video z odkazu."
         )
+    }
+
+    private fun parseIsoDuration(isoStr: String): Int {
+        return try {
+            val regex = Regex("""PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?""")
+            val match = regex.find(isoStr) ?: return 0
+            val (hStr, mStr, sStr) = match.destructured
+            val h = hStr.toIntOrNull() ?: 0
+            val m = mStr.toIntOrNull() ?: 0
+            val s = sStr.toIntOrNull() ?: 0
+            h * 3600 + m * 60 + s
+        } catch (_: Exception) {
+            0
+        }
     }
 
     private fun formatCzechViewCount(count: Long): String {

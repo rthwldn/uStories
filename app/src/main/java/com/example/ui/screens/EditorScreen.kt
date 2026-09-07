@@ -135,7 +135,7 @@ fun EditorScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "Barevný gradient pozadí",
+                            text = "Styl a pozadí",
                             fontWeight = FontWeight.Bold,
                             fontSize = 15.sp,
                             color = colorScheme.onSurface

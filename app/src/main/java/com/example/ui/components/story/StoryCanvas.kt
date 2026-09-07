@@ -1,8 +1,6 @@
 package com.example.ui.components.story
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -17,6 +15,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
@@ -42,32 +41,58 @@ fun StoryCanvas(
     val template = customization.template
     val bgBrush = Brush.verticalGradient(template.gradientColors)
 
-    // 9:16 Aspect Ratio Frame
+    // 9:16 Aspect Ratio Frame - Smooth and borderless
     Box(
         modifier = modifier
             .aspectRatio(9f / 16f)
+            .shadow(16.dp, RoundedCornerShape(24.dp))
             .clip(RoundedCornerShape(24.dp))
             .background(bgBrush)
-            .border(2.dp, Color.White.copy(alpha = 0.15f), RoundedCornerShape(24.dp))
-            .shadow(16.dp, RoundedCornerShape(24.dp))
             .testTag("story_canvas_container"),
         contentAlignment = Alignment.Center
     ) {
-        // Centered Video Card
+        // If template uses blurred thumbnail background, render heavily blurred full-bleed thumbnail with dark scrim
+        if (template.isBlurredThumbnailBg && video.thumbnailUrl.isNotBlank()) {
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(video.thumbnailUrl)
+                    .crossfade(true)
+                    .build(),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .blur(40.dp)
+            )
+            // Dark vignette/scrim overlay over blurred image for contrast
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        Brush.verticalGradient(
+                            listOf(
+                                Color.Black.copy(alpha = 0.55f),
+                                Color.Black.copy(alpha = 0.75f)
+                            )
+                        )
+                    )
+            )
+        }
+
+        // Centered Video Card - Floating naturally with soft shadow without harsh borders
         Surface(
             modifier = Modifier
                 .fillMaxWidth(0.88f)
                 .shadow(18.dp, RoundedCornerShape(20.dp)),
             shape = RoundedCornerShape(20.dp),
-            color = template.cardBackground,
-            border = BorderStroke(1.dp, template.cardBorderColor)
+            color = template.cardBackground
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(12.dp)
             ) {
-                // 16:9 Clean Video Thumbnail (No Red Play Button)
+                // 16:9 Clean Video Thumbnail
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -86,14 +111,15 @@ fun StoryCanvas(
                         modifier = Modifier.fillMaxSize()
                     )
 
-                    // Duration Badge (Bottom Right) if available
-                    if (video.formattedDuration.isNotEmpty() && video.durationSeconds > 0) {
+                    // Video Duration Badge on Bottom-Left (like YouTube)
+                    if (video.formattedDuration.isNotEmpty()) {
                         Surface(
                             shape = RoundedCornerShape(6.dp),
-                            color = Color.Black.copy(alpha = 0.8f),
+                            color = Color.Black.copy(alpha = 0.85f),
                             modifier = Modifier
-                                .align(Alignment.BottomEnd)
+                                .align(Alignment.BottomStart)
                                 .padding(8.dp)
+                                .testTag("video_duration_badge")
                         ) {
                             Text(
                                 text = video.formattedDuration,
@@ -120,40 +146,29 @@ fun StoryCanvas(
                     modifier = Modifier.padding(horizontal = 4.dp)
                 )
 
-                val metaList = mutableListOf<String>()
-                if (video.viewCount.isNotBlank()) {
-                    metaList.add(video.viewCount)
+                // Channel Name + Views (NO upload date, joined with dot separator)
+                val metaParts = mutableListOf<String>()
+                if (video.channelTitle.isNotBlank()) {
+                    metaParts.add(video.channelTitle)
                 }
-                val formattedDate = video.cleanPublishedDate
-                if (formattedDate.isNotBlank()) {
-                    metaList.add(formattedDate)
+                if (video.viewCount.isNotBlank()) {
+                    metaParts.add(video.viewCount)
                 }
 
-                if (metaList.isNotEmpty()) {
+                if (metaParts.isNotEmpty()) {
                     Spacer(modifier = Modifier.height(6.dp))
                     Text(
-                        text = metaList.joinToString(" • "),
+                        text = metaParts.joinToString(" • "),
                         color = template.metaColor,
-                        fontSize = 11.sp,
+                        fontSize = 11.5.sp,
                         fontWeight = FontWeight.Medium,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.padding(horizontal = 4.dp)
+                        modifier = Modifier
+                            .padding(horizontal = 4.dp)
+                            .testTag("video_meta_text")
                     )
                 }
-
-                Spacer(modifier = Modifier.height(2.dp))
-
-                // Channel Name
-                Text(
-                    text = video.channelTitle,
-                    color = template.metaColor.copy(alpha = 0.85f),
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
-                )
             }
         }
     }

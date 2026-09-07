@@ -6,6 +6,6 @@ enum class ExportFormat(val extension: String, val mimeType: String, val title: 
 }
 
 data class StoryCustomization(
-    val template: StoryTemplate = StoryTemplate.DARK_MINIMAL,
+    val template: StoryTemplate = StoryTemplate.CHARCOAL_SLATE,
     val exportFormat: ExportFormat = ExportFormat.PNG
 )

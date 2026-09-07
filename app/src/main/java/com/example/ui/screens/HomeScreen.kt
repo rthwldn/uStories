@@ -76,21 +76,7 @@ fun HomeScreen(
         containerColor = colorScheme.background,
         topBar = {
             TopAppBar(
-                title = {
-                    Column {
-                        Text(
-                            text = "uStories",
-                            color = colorScheme.onBackground,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 20.sp
-                        )
-                        Text(
-                            text = "YouTube do 9:16 Story",
-                            color = colorScheme.onSurfaceVariant,
-                            fontSize = 11.sp
-                        )
-                    }
-                },
+                title = { },
                 actions = {
                     Surface(
                         modifier = Modifier

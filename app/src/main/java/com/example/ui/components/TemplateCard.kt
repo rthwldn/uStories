@@ -68,7 +68,6 @@ fun TemplateCard(
                     .height(86.dp)
                     .clip(RoundedCornerShape(12.dp))
                     .background(Brush.verticalGradient(template.gradientColors))
-                    .border(1.dp, Color.White.copy(alpha = 0.25f), RoundedCornerShape(12.dp))
                     .padding(6.dp),
                 contentAlignment = Alignment.Center
             ) {
@@ -78,8 +77,7 @@ fun TemplateCard(
                         .fillMaxWidth(0.82f)
                         .height(38.dp)
                         .clip(RoundedCornerShape(6.dp))
-                        .background(template.cardBackground)
-                        .border(0.5.dp, Color.White.copy(alpha = 0.2f), RoundedCornerShape(6.dp)),
+                        .background(template.cardBackground),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(

@@ -12,6 +12,7 @@ data class SavedStoryEntity(
     val channelTitle: String,
     val thumbnailUrl: String,
     val templateId: String,
+    val durationSeconds: Int = 0,
     val viewCount: String = "",
     val publishedDate: String = "",
     val exportFormat: String = "PNG",

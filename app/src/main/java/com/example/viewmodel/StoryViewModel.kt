@@ -128,6 +128,7 @@ class StoryViewModel(application: Application) : AndroidViewModel(application) {
             channelTitle = video.channelTitle,
             thumbnailUrl = video.thumbnailUrl,
             templateId = custom.template.id,
+            durationSeconds = video.durationSeconds,
             viewCount = video.viewCount,
             publishedDate = video.publishedDate,
             exportFormat = custom.exportFormat.name
@@ -151,6 +152,7 @@ class StoryViewModel(application: Application) : AndroidViewModel(application) {
             title = savedStory.videoTitle,
             channelTitle = savedStory.channelTitle,
             thumbnailUrl = savedStory.thumbnailUrl,
+            durationSeconds = savedStory.durationSeconds,
             viewCount = if (savedStory.viewCount.isNotEmpty()) savedStory.viewCount else "1.2M zhlédnutí",
             publishedDate = if (savedStory.publishedDate.isNotEmpty()) savedStory.publishedDate else "Nahráno"
         )
